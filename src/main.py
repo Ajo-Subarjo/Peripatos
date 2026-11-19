@@ -1,24 +1,39 @@
 import flet as ft
 
 
-WILDEX = [
-    {
-        "id": 650,
-        "name": "Chespin",
-        "type": "Grass",
-        "height": "0.4 m",
-        "weight": "9.0 kg",
-        "description": "A grass Type Pokemon With a Tough shell covering its head"
-    },
-    {
-        "id": 650,
-        "name": "Chespin",
-        "type": "Grass",
-        "height": "0.4 m",
-        "weight": "9.0 kg",
-        "description": "A grass Type Pokemon With a Tough shell covering its head"
-    }
-]
+WILDEX = {
+    "west java": [
+        {
+            "id": 650,
+            "name": "Chespin",
+            "type": "Grass",
+            "height": "0.4 m",
+            "weight": "9.0 kg",
+            "description": "A grass Type Pokemon With a Tough shell covering its head"
+        },
+        {
+            "id": 650,
+            "name": "Quilladin",
+            "type": "Grass",
+            "height": "0.7 m",
+            "weight": "29.0 kg",
+            "description": "A Grass-type Pokémon."
+        },
+    ],
+
+    "east java": [
+        {
+            "id": 650,
+            "name": "Chesnaught",
+            "type": "Grass/Fighting",
+            "height": "1.6 m",
+            "weight": "90.0 kg",
+            "description": "A Grass-type Pokémon."
+        }
+    ]
+}
+
+region_visible = ""
 
 
 
@@ -31,7 +46,7 @@ def main(page: ft.Page):
 
     def wild_by_id(pid):
         return next(
-            (p for p in WILDEX if p["id"] == pid),
+            (p for p in WILDEX["west-java"] if p["id"] == pid),
             None
         )
 
@@ -48,20 +63,23 @@ def main(page: ft.Page):
 
     
 
-    def build_hero(wild, size):
-
+    def build_hero(wild, sizeX, sizeY = None):
+        id = wild['id']
+        if sizeY == None:
+            sizeY = sizeX
         return ft.Hero(
-            tag=hero_tag(wild["id"]),
+            tag=hero_tag(id),
             transition_on_user_gestures= True,
             content= ft.Container(
-                width=size,
-                height=size,
+                width=sizeX,
+                height=sizeY,
                 alignment=ft.Alignment.CENTER,
+                border_radius=0,
                 content=ft.Image(
-                    src=("assets/icon.svg"),
-                    width=size,
-                    height=size,
-                    fit=ft.BoxFit.CONTAIN
+                    src=(f"wild_image/west-java/{id}.jpg"),
+                    width=sizeX,
+                    height=sizeY,
+                    fit=ft.BoxFit.COVER
                 ),
             )
         )
@@ -72,47 +90,87 @@ def main(page: ft.Page):
 
             on_tap= get_nav("on_card_click", wild['id']),
             content= ft.Container(
-                bgcolor="#58E4EE",
-                border=ft.Border.all(2, "#B5F9FA"),
-                border_radius=13,
+                bgcolor="#e1eeee",
+                # border=ft.Border.all(2, "#A0E4E5"),
+                border_radius=0,
                 padding=5,
 
                 content=ft.Column(
-                    [
-                        build_hero(wild, 90),
+                    horizontal_alignment=ft.CrossAxisAlignment.START,
+                    controls=[
+                        ft.Container(
+                            alignment=ft.Alignment.CENTER,
+                            padding=5,
+                            content=build_hero(wild, 120, 110)
+                        ),                        
                         ft.Text(
-                            f"{wild['id']:04}",
-                            size=18,
-                            color="#007FA9",
+                            f"{wild['name']}",
+                            size=16,
+                            weight=ft.FontWeight.BOLD,
+                            overflow=ft.TextOverflow.ELLIPSIS,
+                            color="#969595",
+                            no_wrap=True,
                         ),
                     ],
-                    alignment=ft.MainAxisAlignment.CENTER,
-                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                    spacing=5
+                    spacing=1
                 )
             )
         )
 
 
+    def on_filter_region_selected(e):
+        region_visible = e.control.data
+        # print(region_visible)
+
 
 
     def build_wildex_view():
 
-        cards = []
+        regions_sections = []
+        region_names = []
+        
+        for region_name, wilds in WILDEX.items():
+            
+            cards = []
 
-        for wild in WILDEX:
-            cards.append(build_card(wild))
+            if region_visible == "":
+                for wild in wilds:
+                    cards.append(build_card(wild))
+            
 
-        grid = ft.GridView(
-            expand=True,
-            runs_count=2,
-            max_extent=180,
-            child_aspect_ratio=0.85,
-            spacing=8,
-            run_spacing=8,
-            controls= cards,
-        )
 
+            region_names.append(
+                ft.PopupMenuItem(
+                    region_name,
+                    data=region_name,
+                    on_click=on_filter_region_selected
+                )
+            )
+
+
+            regions_sections.append(
+                ft.Column(
+                    controls=[
+                        ft.Text(
+                            region_name.replace("-", " ").title(),
+                            size=22,
+                            weight=ft.FontWeight.BOLD,
+                        ),
+                        ft.GridView(
+                            expand=True,
+                            runs_count=2,
+                            max_extent=180,
+                            child_aspect_ratio=0.85,
+                            spacing=8,
+                            run_spacing=8,
+                            controls= cards,
+                        ),
+                    ],
+                spacing=10
+                )
+            )
+
+            
         return ft.View(
             route="/",
             appbar=ft.AppBar(
@@ -121,7 +179,24 @@ def main(page: ft.Page):
             controls=[
                 ft.SafeArea(
                     expand=True,
-                    content=grid,
+                    content=ft.Stack(
+                        expand=True,
+                        controls= [
+                            ft.ListView(
+                                expand=True,
+                                spacing=4,
+                                controls=regions_sections
+                            ),
+                            ft.PopupMenuButton(
+                                icon=ft.Icons.FILTER_LIST,
+                                menu_position=ft.PopupMenuPosition.OVER,
+                                items=region_names,
+                                right=20,
+                                bottom=20
+                            ),
+                        ]
+
+                    )
                 )
             ],
         )
@@ -138,24 +213,25 @@ def main(page: ft.Page):
                     expand=True,
                     content=ft.Column(
                         expand=True,
-                        spacing=15,
-                        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                        horizontal_alignment=ft.CrossAxisAlignment.START,
 
                         controls=[
-                            ft.Container(height=10),
-                            build_hero(wild, 240),
-
-                            ft.Text(
-                                wild['name'],
-                                size=28,
-                                weight=ft.FontWeight.BOLD,
-                                color="#007FA9",
-                            ),
-
-                            ft.Text(
-                                    f"#{wild['id']:04}",
-                                    size=18,
-                            ),
+                            build_hero(wild, 400, 220),
+                            ft.Row(
+                                alignment=ft.MainAxisAlignment.START,
+                                controls= [
+                                    ft.Text(
+                                        wild['name'],
+                                        size=28,
+                                        weight=ft.FontWeight.BOLD,
+                                        color="#007FA9",
+                                    ),
+                                    ft.Text(
+                                        f"#{wild['id']:04}",
+                                        size=18,
+                                    ),
+                                ]
+                            ),                            
 
                             ft.Container(
                                 bgcolor="#DDF8F2",
