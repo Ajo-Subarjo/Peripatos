@@ -2,7 +2,7 @@ import flet as ft
 
 
 WILDEX = {
-    "west java": [
+    "west_java": [
         {
             "id": 650,
             "name": "Chespin",
@@ -21,7 +21,7 @@ WILDEX = {
         },
     ],
 
-    "east java": [
+    "east_java": [
         {
             "id": 650,
             "name": "Chesnaught",
@@ -33,7 +33,6 @@ WILDEX = {
     ]
 }
 
-region_visible = ""
 
 
 
@@ -42,24 +41,28 @@ def hero_tag(wild_id):
 
 
 def main(page: ft.Page):
+
+    region_visible = ""
+
+
     page.title = "Biodex"
 
-    def wild_by_id(pid):
-        return next(
-            (p for p in WILDEX["west-java"] if p["id"] == pid),
-            None
-        )
 
-    def route_wild_id(route):
+    def extract_data(route):
         parts = route.strip("/").split("/") 
 
-        if len(parts) == 2 and parts[0] == "wild":
+        if len(parts) == 3 and parts[0] == "wild":
             try:
-                return int(parts[1])
+                return [parts[1], int(parts[2])]
             except ValueError:
                 pass
         return None
 
+    def wild_by_id(region, wid):
+        return next(
+            (w for w in WILDEX.get(region, []) if w["id"] == wid),
+            None,
+        )
 
     
 
@@ -76,7 +79,7 @@ def main(page: ft.Page):
                 alignment=ft.Alignment.CENTER,
                 border_radius=0,
                 content=ft.Image(
-                    src=(f"wild_image/west-java/{id}.jpg"),
+                    src=(f"wild_image/west_java/{id}.jpg"),
                     width=sizeX,
                     height=sizeY,
                     fit=ft.BoxFit.COVER
@@ -84,11 +87,13 @@ def main(page: ft.Page):
             )
         )
 
-    def build_card(wild):
+    def build_card(region_name, wild):
+        print(region_name)
         return ft.GestureDetector(
             mouse_cursor=ft.MouseCursor.CLICK,
+            data = wild,
 
-            on_tap= get_nav("on_card_click", wild['id']),
+            on_tap= get_nav("on_card_click", [region_name, wild['id']]),
             content= ft.Container(
                 bgcolor="#e1eeee",
                 # border=ft.Border.all(2, "#A0E4E5"),
@@ -119,8 +124,12 @@ def main(page: ft.Page):
 
 
     def on_filter_region_selected(e):
+        nonlocal region_visible
         region_visible = e.control.data
-        # print(region_visible)
+
+        print(region_visible)
+
+        route_change()
 
 
 
@@ -133,19 +142,27 @@ def main(page: ft.Page):
             
             cards = []
 
-            if region_visible == "":
-                for wild in wilds:
-                    cards.append(build_card(wild))
-            
-
-
             region_names.append(
                 ft.PopupMenuItem(
-                    region_name,
+                    content=ft.Container(
+                        content=ft.Text(region_name.replace("-", " ").title()),
+                    ),
+                    checked=(region_name == region_visible),
                     data=region_name,
                     on_click=on_filter_region_selected
                 )
             )
+
+            if region_visible == "":
+                for wild in wilds:
+                    cards.append(build_card(region_name, wild))
+            else:
+                if region_name != region_visible:
+                    continue
+
+                for wild in wilds:
+                    cards.append(build_card(region_name, wild))          
+
 
 
             regions_sections.append(
@@ -202,9 +219,12 @@ def main(page: ft.Page):
         )
 
 
-    def build_detail_view(wild):
+    def build_detail_view(data):
+        region_name = data[0]
+        wild = data[1]
+        print(f"/wild/{region_name}/{wild['id']}")
         return ft.View(
-            route=f"/wild/{wild['id']}",
+            route=f"/wild/{region_name}/{wild['id']}",
             appbar=ft.AppBar(
                 title=ft.Text(wild['name'])
             ),
@@ -264,7 +284,7 @@ def main(page: ft.Page):
 
 
 
-    def get_nav(name, data = None):
+    def get_nav(name, data = []):
 
         if name == "on_card_click":
             def on_card_click(e):
@@ -278,8 +298,8 @@ def main(page: ft.Page):
 
             return go_back
 
-    async def open_card(wid):
-        await page.push_route(f"/wild/{wid}")
+    async def open_card(data):
+        await page.push_route(f"/wild/{data[0]}/{data[1]}")
 
 
 
@@ -288,14 +308,15 @@ def main(page: ft.Page):
         page.views.clear()
 
         page.views.append(build_wildex_view())
+        print(page.route)
+        result = extract_data(page.route)
 
-        wid = route_wild_id(page.route)
-
-        if wid is not None:
-            wild = wild_by_id(wid)
+        if result is not None:
+            region, wid = result
+            wild = wild_by_id(region, wid)
 
             if wild:
-                page.views.append(build_detail_view(wild))
+                page.views.append(build_detail_view([region, wild]))
 
         page.update()
 
