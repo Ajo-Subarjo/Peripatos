@@ -21,16 +21,6 @@ WILDEX = {
         },
     ],
 
-    "east_java": [
-        {
-            "id": 650,
-            "name": "Chesnaught",
-            "type": "Grass/Fighting",
-            "height": "1.6 m",
-            "weight": "90.0 kg",
-            "description": "A Grass-type Pokémon."
-        }
-    ]
 }
 
 
@@ -42,7 +32,7 @@ def hero_tag(wild_id):
 
 def main(page: ft.Page):
 
-    region_visible = ""
+    region_visible = []
 
 
     page.title = "Biodex"
@@ -62,9 +52,7 @@ def main(page: ft.Page):
         return next(
             (w for w in WILDEX.get(region, []) if w["id"] == wid),
             None,
-        )
-
-    
+        )    
 
     def build_hero(wild, sizeX, sizeY = None):
         id = wild['id']
@@ -124,45 +112,58 @@ def main(page: ft.Page):
 
 
     def on_filter_region_selected(e):
-        nonlocal region_visible
-        region_visible = e.control.data
+        region, is_selected = e.control.data
+        print(is_selected)
 
-        print(region_visible)
+        if not is_selected:
+            region_visible.append(region)
+        else:
+            region_visible.remove(region)
 
-        route_change()
+        # print(region_visible)
+
+        refresh_page()
 
 
 
     def build_wildex_view():
 
         regions_sections = []
-        region_names = []
+
+        filter_box = ft.Container(
+            visible=False,
+            padding=8,
+
+            border_radius=8,
+            bgcolor="#Ffffff",
+
+            content=ft.Column(
+                tight=True,
+                height=min(len(WILDEX) * 50, 150),
+                margin=ft.Margin(0,0,0,20),
+                # scroll=ft.ScrollMode.AUTO,
+                controls=[
+                    build_region_list_filter(region_visible),
+                ]
+            )
+        )
+
+        def toggle_filter():
+            filter_box.visible = not filter_box.visible
+            print(filter_box.visible)
+            page.update()
+
         
         for region_name, wilds in WILDEX.items():
             
             cards = []
 
-            region_names.append(
-                ft.PopupMenuItem(
-                    content=ft.Container(
-                        content=ft.Text(region_name.replace("-", " ").title()),
-                    ),
-                    checked=(region_name == region_visible),
-                    data=region_name,
-                    on_click=on_filter_region_selected
-                )
-            )
+            if len(region_visible) != 0 and region_name not in region_visible:
+                print(len(region_visible))
+                continue
 
-            if region_visible == "":
-                for wild in wilds:
-                    cards.append(build_card(region_name, wild))
-            else:
-                if region_name != region_visible:
-                    continue
-
-                for wild in wilds:
-                    cards.append(build_card(region_name, wild))          
-
+            for wild in wilds:
+                cards.append(build_card(region_name, wild)) 
 
 
             regions_sections.append(
@@ -204,19 +205,62 @@ def main(page: ft.Page):
                                 spacing=4,
                                 controls=regions_sections
                             ),
-                            ft.PopupMenuButton(
-                                icon=ft.Icons.FILTER_LIST,
-                                menu_position=ft.PopupMenuPosition.OVER,
-                                items=region_names,
+                            ft.Container(
+                                width=150,
                                 right=20,
-                                bottom=20
-                            ),
-                        ]
-
+                                bottom=20,
+                                content=ft.Column(
+                                    horizontal_alignment=ft.CrossAxisAlignment.END,
+                                    spacing=-20,
+                                    controls= [
+                                        filter_box,
+                                        ft.FloatingActionButton(
+                                            icon=ft.Icons.FILTER_LIST_ROUNDED,
+                                            bgcolor= "#ffffff",
+                                            # offset=ft.Offset(0,-0.5),
+                                            on_click=toggle_filter
+                                        )
+                                    ]
+                                ),
+                            )
+                        ]   
                     )
                 )
             ],
         )
+
+
+    def build_region_list_filter(region_visible):
+
+        menu_items = []
+
+        for region in WILDEX:
+
+            if region in region_visible:
+                is_selected = True
+            else:
+                is_selected = False
+
+            menu_items.append(
+                ft.Container(
+                    content = ft.Text(region.title()),
+                    bgcolor="#356859" if is_selected else "#292929",
+                    data=(region, is_selected),
+                    border_radius=8,
+                    padding=12,
+                    on_click=on_filter_region_selected
+                )
+            )
+
+
+
+        return ft.ListView(
+            controls=menu_items,
+            spacing=5,
+            auto_scroll=False,
+            expand=True
+        )
+
 
 
     def build_detail_view(data):
@@ -304,10 +348,13 @@ def main(page: ft.Page):
 
 
 
-    def route_change(e=None):
+    def refresh_page(e=None):
         page.views.clear()
 
+        page.views.clear()
         page.views.append(build_wildex_view())
+              
+
         print(page.route)
         result = extract_data(page.route)
 
@@ -329,10 +376,10 @@ def main(page: ft.Page):
                 page.views[-1].route
             )
 
-    page.on_route_change = route_change
+    page.on_route_change = refresh_page
     page.on_view_pop = view_pop
 
-    route_change()
+    refresh_page()
 
 if __name__ == "__main__":
     ft.run(main)
