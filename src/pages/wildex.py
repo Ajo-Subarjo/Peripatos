@@ -49,18 +49,19 @@ def build_wildex_view():
 
         regions_sections.append(
             ft.Column(
+                margin= ft.Margin(0,15,0,0),
                 data=region_name,
                 controls=[
                     ft.Text(
                         region_name.replace("_", " ").title(),
-                        size=22,
+                        size=16,
                         weight=ft.FontWeight.BOLD,
                     ),
                     ft.GridView(
                         expand=True,
-                        runs_count=2,
+                        runs_count=3,
                         max_extent=180,
-                        child_aspect_ratio=0.85,
+                        child_aspect_ratio=0.93,
                         spacing=8,
                         run_spacing=8,
                         controls= cards,
@@ -112,18 +113,6 @@ def build_wildex_view():
     )
 
 
-def update_wildex_region_section():
-    cards = []
-
-    return ft.GridView(
-            expand=True,
-            runs_count=2,
-            max_extent=180,
-            child_aspect_ratio=0.85,
-            spacing=8,
-            run_spacing=8,
-            controls= cards,
-        )
 
 def build_region_list_filter_button():
 
@@ -160,23 +149,24 @@ def build_card(region_name, wild):
         content= ft.Container(
             bgcolor="#e1eeee",
             # border=ft.Border.all(2, "#A0E4E5"),
-            border_radius=0,
-            padding=5,
+            padding=8,
+            border_radius=2,
 
             content=ft.Column(
-                horizontal_alignment=ft.CrossAxisAlignment.START,
+                # horizontal_alignment=ft.CrossAxisAlignment.lef,
                 controls=[
                     ft.Container(
                         alignment=ft.Alignment.CENTER,
-                        padding=5,
-                        content=component.build_hero(wild, 120, 110)
+                        content=component.build_hero(wild, 130, 100)
                     ),                        
                     ft.Text(
                         f"{wild['name']}",
+                        margin=ft.Margin.only(top=2),
                         size=16,
+                        text_align=ft.TextAlign.LEFT,
                         weight=ft.FontWeight.BOLD,
                         overflow=ft.TextOverflow.ELLIPSIS,
-                        color="#969595",
+                        color="#483B46",
                         no_wrap=True,
                     ),
                 ],

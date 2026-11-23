@@ -3,29 +3,6 @@ import component
 import router
 from DB import init_db
 
-WILDEX = {
-    "west_java": [
-        {
-            "id": 650,
-            "name": "Chespin",
-            "type": "Grass",
-            "height": "0.4 m",
-            "weight": "9.0 kg",
-            "description": "A grass Type Pokemon With a Tough shell covering its head"
-        },
-        {
-            "id": 650,
-            "name": "Quilladin",
-            "type": "Grass",
-            "height": "0.7 m",
-            "weight": "29.0 kg",
-            "description": "A Grass-type Pokémon."
-        },
-    ],
-
-}
-
-
 
 
 def main(_page: ft.Page):
