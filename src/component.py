@@ -8,7 +8,12 @@ def hero_tag(wild_id):
     return f"bio-hero-{wild_id}"
 
 
-def build_hero(wild, sizeX, sizeY = None):
+def card_tag(region_name, wild_id):
+     return f"card-{region_name}-{wild_id}"
+
+
+
+def build_image(region_name, wild, sizeX, sizeY = None):
     id = wild['id']
     
     if sizeY == None:
@@ -24,13 +29,17 @@ def build_hero(wild, sizeX, sizeY = None):
             alignment=ft.Alignment.CENTER,
             border_radius=0,
             content=ft.Image(
-                src=(f"wild_image/west_java/{id}.jpg"),
+                src=(f"wild_image/{region_name}/{id}.jpg"),
                 width=sizeX,
                 height=sizeY,
                 fit=ft.BoxFit.COVER
             ),
         )
     )
+
+
+
+
 
 def extract_data(route):
         parts = route.strip("/").split("/") 

@@ -4,18 +4,28 @@ from pages.detailview import build_detail_view
 
 import component
 
+
+
+home = None
+
+
 def refresh_page(e=None):
+    global home
     print("refresh, route =", component.page.route)
-    component.page.views.clear()
+    page = component.page
+    # component.page.views.clear()
 
-    if not component.page.views:
-        component.page.views.append(build_wildex_view())
-            
+    if home is None:
+        home = build_wildex_view()         
 
-    print(component.page.route)
-    result = component.extract_data(component.page.route)
+    if not page.views or page.views[0] is not home:
+        page.views.clear()
+        page.views.append(home)
 
-    del component.page.views[1:]
+    del page.views[1:]
+
+    result = component.extract_data(page.route)
+    
     if result is not None:
         region, wid = result
         wild = wild_by_id(region, wid)

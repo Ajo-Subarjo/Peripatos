@@ -4,6 +4,7 @@ from DB import get_grouped, get_regions
 
 region_visible = []
 regions_sections = []
+is_filter_list_open = False
 
 def build_wildex_view():
 
@@ -12,11 +13,15 @@ def build_wildex_view():
     grouped = get_grouped()
 
     filter_box = ft.Container(
-        visible=False,
         padding=8,
 
         border_radius=8,
         bgcolor="#Ffffff",
+
+        opacity=0,
+        scale=0,
+        animate_opacity=ft.Animation(200, ft.AnimationCurve.EASE_IN_OUT_SINE),
+        animate_scale=ft.Animation(250, ft.AnimationCurve.EASE_IN_OUT_SINE),
 
         content=ft.Column(
             tight=True,
@@ -30,8 +35,12 @@ def build_wildex_view():
     )
 
     def toggle_filter():
-        filter_box.visible = not filter_box.visible
+        global is_filter_list_open
+        is_filter_list_open = not is_filter_list_open
         # print(filter_box.visible)
+
+        filter_box.opacity = 1 if is_filter_list_open else 0
+        filter_box.scale =ft.Scale(scale=1 if is_filter_list_open else 0, alignment=ft.Alignment.BOTTOM_RIGHT)
 
         component.page.update()
 
@@ -55,6 +64,7 @@ def build_wildex_view():
                     ft.Text(
                         region_name.replace("_", " ").title(),
                         size=16,
+                        color="#3E3A34",
                         weight=ft.FontWeight.BOLD,
                     ),
                     ft.GridView(
@@ -76,7 +86,10 @@ def build_wildex_view():
         route="/",
         appbar=ft.AppBar(
             title=ft.Text("WILDEX"),
+            bgcolor="#356859",
+            color="#e1eeee",
         ),
+                
         controls=[
             ft.SafeArea(
                 expand=True,
@@ -146,44 +159,54 @@ def build_card(region_name, wild):
         mouse_cursor=ft.MouseCursor.CLICK,
 
         on_tap= component.get_nav("on_card_click", [region_name, wild['id']]),
-        content= ft.Container(
-            bgcolor="#e1eeee",
-            # border=ft.Border.all(2, "#A0E4E5"),
-            padding=8,
-            border_radius=2,
-
-            content=ft.Column(
-                # horizontal_alignment=ft.CrossAxisAlignment.lef,
-                controls=[
-                    ft.Container(
-                        alignment=ft.Alignment.CENTER,
-                        content=component.build_hero(wild, 130, 100)
-                    ),                        
-                    ft.Text(
-                        f"{wild['name']}",
-                        margin=ft.Margin.only(top=2),
-                        size=16,
-                        text_align=ft.TextAlign.LEFT,
-                        weight=ft.FontWeight.BOLD,
-                        overflow=ft.TextOverflow.ELLIPSIS,
-                        color="#483B46",
-                        no_wrap=True,
+            content= ft.Hero(
+                tag=component.card_tag(region_name, wild['id']),
+                transition_on_user_gestures=True,
+                content=ft.Container(
+                    bgcolor="#e1eeee",
+                    # border=ft.Border.all(2, "#A0E4E5"),
+                    padding=8,
+                    border_radius=5,
+                    shadow=ft.BoxShadow(
+                        blur_radius=3,
+                        spread_radius=2,
+                        color="#afc2bc",
+                        offset=ft.Offset(5, 4),
                     ),
-                ],
-                spacing=1
+                    content=ft.Column(
+                        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                        controls=[
+                            ft.Container(
+                                alignment=ft.Alignment.CENTER,
+                                content=component.build_image(region_name,wild, 130, 100)
+                            ),                        
+                            ft.Text(
+                                f"{wild['name']}",
+                                margin=ft.Margin.only(top=2),
+                                size=16,
+                                text_align=ft.TextAlign.CENTER,
+                                weight=ft.FontWeight.BOLD,
+                                overflow=ft.TextOverflow.ELLIPSIS,
+                                color="#483B46",
+                                no_wrap=True,
+                            ),
+                        ],
+                        spacing=1
+                    )
+                )
             )
-        )
     )
 
 def on_filter_region_selected(e):
     region = e.control.data
-    e.control.bgcolor = "#356859" if region in region_visible else "#292929"
     # print(is_selected)
 
     if region in region_visible:
         region_visible.remove(region)
     else:
         region_visible.append(region)
+
+    e.control.bgcolor = "#356859" if region in region_visible else "#292929"
     
     # print(region_visible)
     for s in regions_sections:
