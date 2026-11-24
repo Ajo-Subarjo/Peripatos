@@ -83,45 +83,55 @@ def build_wildex_view():
 
         
     return ft.View(
-        route="/",
+        route="/Wildex",
         appbar=ft.AppBar(
             title=ft.Text("WILDEX"),
             bgcolor="#356859",
             color="#e1eeee",
         ),
-                
+
+        bgcolor="#c5dad4",
+
+        padding=0,
         controls=[
-            ft.SafeArea(
+            ft.Column(
                 expand=True,
-                content=ft.Stack(
-                    expand=True,
-                    controls= [
-                        ft.ListView(
+                controls=[
+                    ft.SafeArea(
+                        expand=True,
+                        minimum_padding=10,
+                        content=ft.Stack(
                             expand=True,
-                            spacing=4,
-                            controls=regions_sections
-                        ),
-                        ft.Container(
-                            width=150,
-                            right=20,
-                            bottom=20,
-                            content=ft.Column(
-                                horizontal_alignment=ft.CrossAxisAlignment.END,
-                                spacing=-20,
-                                controls= [
-                                    filter_box,
-                                    ft.FloatingActionButton(
-                                        icon=ft.Icons.FILTER_LIST_ROUNDED,
-                                        bgcolor= "#ffffff",
-                                        # offset=ft.Offset(0,-0.5),
-                                        on_click=toggle_filter
-                                    )
-                                ]
-                            ),
+                            controls= [
+                                ft.ListView(
+                                    expand=True,
+                                    spacing=4,
+                                    controls=regions_sections
+                                ),
+                                ft.Container(
+                                    width=150,
+                                    right=20,
+                                    bottom=20,
+                                    content=ft.Column(
+                                        horizontal_alignment=ft.CrossAxisAlignment.END,
+                                        spacing=-20,
+                                        controls= [
+                                            filter_box,
+                                            ft.FloatingActionButton(
+                                                icon=ft.Icons.FILTER_LIST_ROUNDED,
+                                                bgcolor= "#ffffff",
+                                                # offset=ft.Offset(0,-0.5),
+                                                on_click=toggle_filter
+                                            )
+                                        ]
+                                    ),
+                                ),
+                            ]   
                         )
-                    ]   
-                )
-            )
+                    ),
+                    component.build_navbar(),
+                ]
+            ),
         ],
     )
 
@@ -157,13 +167,13 @@ def build_card(region_name, wild):
     # print(region_name)
     return ft.GestureDetector(
         mouse_cursor=ft.MouseCursor.CLICK,
-
+        
         on_tap= component.get_nav("on_card_click", [region_name, wild['id']]),
             content= ft.Hero(
                 tag=component.card_tag(region_name, wild['id']),
                 transition_on_user_gestures=True,
                 content=ft.Container(
-                    bgcolor="#e1eeee",
+                    bgcolor="#e8eeed",
                     # border=ft.Border.all(2, "#A0E4E5"),
                     padding=8,
                     border_radius=5,
